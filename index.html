@@ -2,7 +2,7 @@
 <html lang="en">
 	<head>
 		<meta charset="utf-8">
-		<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0">
+		<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, interactive-widget=resizes-visual">
 		<title>OW</title>
 		<style>
 html, body, #canvas {
@@ -93,6 +93,17 @@ body {
 		<link id="-gd-engine-icon" rel="icon" type="image/png" href="index.icon.png" />
 <link rel="apple-touch-icon" href="index.apple-touch-icon.png"/>
 
+	<script>/* kbGuardActive */
+(function () {
+	var lastW = window.innerWidth, lastH = window.innerHeight;
+	window.addEventListener('resize', function (ev) {
+		var w = window.innerWidth, h = window.innerHeight;
+		var sameW = Math.abs(w - lastW) <= Math.max(2, lastW * 0.05);
+		if (sameW && h < lastH * 0.8) { ev.stopImmediatePropagation(); return; }
+		lastW = w; lastH = h;
+	}, true);
+})();
+</script>
 	</head>
 	<body>
 		<canvas id="canvas">
@@ -111,7 +122,7 @@ body {
 
 		<script src="index.js"></script>
 		<script>
-const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":true,"fileSizes":{"index.pck":1746664,"index.wasm":39514754},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
+const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":true,"fileSizes":{"index.pck":1749368,"index.wasm":39514754},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
 const GODOT_THREADS_ENABLED = false;
 const engine = new Engine(GODOT_CONFIG);
 
