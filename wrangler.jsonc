@@ -1,9 +1,0 @@
-{
-  // Cloudflare Workers 静态资产部署配置（cf-deploy 分支专用）
-  "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "guess-who",
-  "compatibility_date": "2026-09-12",
-  "assets": {
-    "directory": "."
-  }
-}
