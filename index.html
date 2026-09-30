@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, interactive-widget=resizes-visual, viewport-fit=cover">
+		<title>猜猜乐</title>
+		<style>
+html, body, #canvas {
+	margin: 0;
+	padding: 0;
+	border: 0;
+}
+
+body {
+	color: white;
+	background-color: black;
+	overflow: hidden;
+	touch-action: none;
+}
+
+#canvas {
+	display: block;
+}
+
+#canvas:focus {
+	outline: none;
+}
+
+#status, #status-splash, #status-progress {
+	position: absolute;
+	left: 0;
+	right: 0;
+}
+
+#status, #status-splash {
+	top: 0;
+	bottom: 0;
+}
+
+#status {
+	background-color: #242424;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	visibility: hidden;
+}
+
+#status-splash {
+	max-height: 100%;
+	max-width: 100%;
+	margin: auto;
+}
+
+#status-splash.show-image--false {
+	display: none;
+}
+
+#status-splash.fullsize--true {
+	height: 100%;
+	width: 100%;
+	object-fit: contain;
+}
+
+#status-splash.use-filter--false {
+	image-rendering: pixelated;
+}
+
+#status-progress, #status-notice {
+	display: none;
+}
+
+#status-progress {
+	bottom: 10%;
+	width: 50%;
+	margin: 0 auto;
+}
+
+#status-notice {
+	background-color: #5b3943;
+	border-radius: 0.5rem;
+	border: 1px solid #9b3943;
+	color: #e0e0e0;
+	font-family: 'Noto Sans', 'Droid Sans', Arial, sans-serif;
+	line-height: 1.3;
+	margin: 0 2rem;
+	overflow: hidden;
+	padding: 1rem;
+	text-align: center;
+	z-index: 1;
+}
+		</style>
+		<link rel="manifest" href="manifest.json">
+		<link id="-gd-engine-icon" rel="icon" type="image/png" href="index.icon.png" />
+<link rel="apple-touch-icon" href="index.apple-touch-icon.png"/>
+
+	<script>/* kbGuardActive */
+(function () {
+	var lastW = window.innerWidth, lastH = window.innerHeight;
+	window.addEventListener('resize', function (ev) {
+		var w = window.innerWidth, h = window.innerHeight;
+		var sameW = Math.abs(w - lastW) <= Math.max(2, lastW * 0.05);
+		if (sameW && h < lastH * 0.8) { ev.stopImmediatePropagation(); return; }
+		lastW = w; lastH = h;
+	}, true);
+})();
+</script>
+	<style>/* safeAreaActive */
+:root {
+	--ow-safe-top: env(safe-area-inset-top, 0px);
+	--ow-safe-right: env(safe-area-inset-right, 0px);
+	--ow-safe-bottom: env(safe-area-inset-bottom, 0px);
+	--ow-safe-left: env(safe-area-inset-left, 0px);
+}
+
+body { background-color: #171a1e; }
+</style><script>/* safeAreaActive 兜底 */
+(function () {
+	var ok = window.CSS && CSS.supports && CSS.supports('top', 'env(safe-area-inset-top)');
+	if (ok) { return; }
+	var m = document.querySelector('meta[name="viewport"]');
+	if (m) { m.setAttribute('content', m.getAttribute('content').replace(/,\s*viewport-fit=cover/, '')); }
+})();
+</script>
+	<style>/* owBootActive */
+#status { background-color: #171a1e; }
+#status-splash { display: none; }
+#status-progress {
+	position: static;
+	width: 55%;
+	max-width: 220px;
+	height: 6px;
+	margin: 18px auto 0;
+	accent-color: #ff9e1a;
+}
+.ow-boot {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	padding: 0 28px;
+	text-align: center;
+	font-family: system-ui, -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+.ow-boot-icon {
+	width: 76px;
+	height: 76px;
+	border-radius: 18px;
+	background: url(index.icon.png) center / contain no-repeat;
+}
+.ow-boot-title { margin-top: 14px; font-size: 22px; font-weight: 600; letter-spacing: 3px; color: #e9eef5; }
+.ow-boot-sub { margin-top: 8px; font-size: 12.5px; line-height: 1.7; color: #8a93a3; }
+.ow-boot-pct { margin-top: 10px; font-size: 12px; min-height: 16px; color: #6f7889; }
+.ow-boot-err-title { font-size: 15px; font-weight: 600; color: #f2f5fa; }
+.ow-boot-err-sub { margin-top: 6px; font-size: 12.5px; line-height: 1.7; color: #d8dde6; }
+.ow-boot-retry {
+	margin-top: 12px;
+	padding: 8px 20px;
+	border: 0;
+	border-radius: 8px;
+	background: #ff9e1a;
+	color: #1b1206;
+	font-size: 13px;
+	font-weight: 600;
+	cursor: pointer;
+}
+</style><script>/* owBootActive */
+(function () {
+	function boot() {
+		var status = document.getElementById('status');
+		if (!status) { return; }
+		var splash = document.getElementById('status-splash');
+		var progress = document.getElementById('status-progress');
+		var notice = document.getElementById('status-notice');
+		if (splash) { splash.style.display = 'none'; }
+
+		var box = document.createElement('div');
+		box.className = 'ow-boot';
+		box.innerHTML = '<div class="ow-boot-icon"></div>'
+			+ '<div class="ow-boot-title">猜猜乐</div>'
+			+ '<div class="ow-boot-sub"></div>'
+			+ '<div class="ow-boot-pct"></div>';
+		status.insertBefore(box, status.firstChild);
+
+		// 已经被 SW 接管 = 资源多半已在本地，别再对熟客说「第一次要下载」。
+		var cached = !!(navigator.serviceWorker && navigator.serviceWorker.controller);
+		box.querySelector('.ow-boot-sub').textContent = cached
+			? '正在打开…'
+			: '第一次打开需要下载一会儿，之后就能秒开';
+
+		var shown = false;
+
+		function showError(title, sub) {
+			if (shown || !notice) { return; }
+			shown = true;
+			notice.innerHTML = '<div class="ow-boot-err-title">' + title + '</div>'
+				+ '<div class="ow-boot-err-sub">' + sub + '</div>';
+			var btn = document.createElement('button');
+			btn.className = 'ow-boot-retry';
+			btn.textContent = '重试';
+			btn.onclick = function () { location.reload(); };
+			notice.appendChild(btn);
+			notice.style.display = 'block';
+		}
+
+		// 引擎自己报错时往这层里写的是英文、也没给重试按钮。接住一次就断开，
+		// 免得自己改 DOM 又把自己触发一遍。
+		var mo = new MutationObserver(function () {
+			var txt = (notice.textContent || '').trim();
+			if (!txt || shown) { return; }
+			mo.disconnect();
+			var missing = /feature|missing|WebGL|WebAssembly/i.test(txt);
+			showError('游戏没能启动', missing
+				? '这个浏览器缺少运行游戏需要的功能，多半是版本太老。换新版 Chrome 或 Safari 再打开。'
+				: '多半是网断了，或者文件没下完整。连上网络，点下面的按钮重试。');
+		});
+		if (notice) { mo.observe(notice, { childList: true, subtree: true, characterData: true }); }
+
+		var lastChange = Date.now();
+		var pct = box.querySelector('.ow-boot-pct');
+		function updatePct() {
+			if (!progress || !pct) { return; }
+			var v = parseFloat(progress.getAttribute('value'));
+			var m = parseFloat(progress.getAttribute('max'));
+			pct.textContent = (v > 0 && m > 0)
+				? '正在下载 ' + Math.round(v / m * 100) + '%'
+				: '正在下载…';
+			lastChange = Date.now();
+		}
+		if (progress) { new MutationObserver(updatePct).observe(progress, { attributes: true }); }
+		updatePct();
+
+		// 【为什么要自己盯着进度】实测：wasm 下载失败时引擎一句话都不写，
+		// 页面就永远停在「正在下载 5%」——这比引擎主动报错更常见（网断了、CDN 抽风）。
+		// 所以除了接住引擎的报错，还要自己判断「进度不动了」。
+		var timer = setInterval(function () {
+			// 启动成功时引擎会把整个 #status 移除，那就没我们事了。
+			if (!document.getElementById('status') || shown) { clearInterval(timer); return; }
+			if (!navigator.onLine) {
+				showError('网好像断了', '连上网络后点下面的按钮重试。之前下好的话，重开也不用重新下载。');
+				return;
+			}
+			// 在线但很久没动静：CDN 那边返回的是分块数据，下载中大概率没有进度事件，
+			// 所以阈值放得宽（45 秒），文案也只说「卡住了」而不是「失败」。
+			if (Date.now() - lastChange > 45000) {
+				showError('下载卡住了', '进度很久没动，可能是网络太慢或信号不稳。点下面的按钮重试。');
+			}
+		}, 5000);
+	}
+
+	if (document.readyState === 'loading') {
+		document.addEventListener('DOMContentLoaded', boot);
+	} else {
+		boot();
+	}
+
+	if ('serviceWorker' in navigator) {
+		window.addEventListener('load', function () {
+			navigator.serviceWorker.register('sw.js').catch(function () {});
+		});
+	}
+})();
+</script>
+	</head>
+	<body>
+		<canvas id="canvas">
+			Your browser does not support the canvas tag.
+		</canvas>
+
+		<noscript>
+			Your browser does not support JavaScript.
+		</noscript>
+
+		<div id="status">
+			<img id="status-splash" class="show-image--true fullsize--true use-filter--true" src="index.png" alt="">
+			<progress id="status-progress"></progress>
+			<div id="status-notice"></div>
+		</div>
+
+		<script src="index.js"></script>
+		<script>
+const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":true,"fileSizes":{"index.pck":1874340,"index.wasm":39514754},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
+const GODOT_THREADS_ENABLED = false;
+const engine = new Engine(GODOT_CONFIG);
+
+(function () {
+	const statusOverlay = document.getElementById('status');
+	const statusProgress = document.getElementById('status-progress');
+	const statusNotice = document.getElementById('status-notice');
+
+	let initializing = true;
+	let statusMode = '';
+
+	function setStatusMode(mode) {
+		if (statusMode === mode || !initializing) {
+			return;
+		}
+		if (mode === 'hidden') {
+			statusOverlay.remove();
+			initializing = false;
+			return;
+		}
+		statusOverlay.style.visibility = 'visible';
+		statusProgress.style.display = mode === 'progress' ? 'block' : 'none';
+		statusNotice.style.display = mode === 'notice' ? 'block' : 'none';
+		statusMode = mode;
+	}
+
+	function setStatusNotice(text) {
+		while (statusNotice.lastChild) {
+			statusNotice.removeChild(statusNotice.lastChild);
+		}
+		const lines = text.split('\n');
+		lines.forEach((line) => {
+			statusNotice.appendChild(document.createTextNode(line));
+			statusNotice.appendChild(document.createElement('br'));
+		});
+	}
+
+	function displayFailureNotice(err) {
+		console.error(err);
+		if (err instanceof Error) {
+			setStatusNotice(err.message);
+		} else if (typeof err === 'string') {
+			setStatusNotice(err);
+		} else {
+			setStatusNotice('An unknown error occurred.');
+		}
+		setStatusMode('notice');
+		initializing = false;
+	}
+
+	const missing = Engine.getMissingFeatures({
+		threads: GODOT_THREADS_ENABLED,
+	});
+
+	if (missing.length !== 0) {
+		if (GODOT_CONFIG['serviceWorker'] && GODOT_CONFIG['ensureCrossOriginIsolationHeaders'] && 'serviceWorker' in navigator) {
+			let serviceWorkerRegistrationPromise;
+			try {
+				serviceWorkerRegistrationPromise = navigator.serviceWorker.getRegistration();
+			} catch (err) {
+				serviceWorkerRegistrationPromise = Promise.reject(new Error('Service worker registration failed.'));
+			}
+			// There's a chance that installing the service worker would fix the issue
+			Promise.race([
+				serviceWorkerRegistrationPromise.then((registration) => {
+					if (registration != null) {
+						return Promise.reject(new Error('Service worker already exists.'));
+					}
+					return registration;
+				}).then(() => engine.installServiceWorker()),
+				// For some reason, `getRegistration()` can stall
+				new Promise((resolve) => {
+					setTimeout(() => resolve(), 2000);
+				}),
+			]).then(() => {
+				// Reload if there was no error.
+				window.location.reload();
+			}).catch((err) => {
+				console.error('Error while registering service worker:', err);
+			});
+		} else {
+			// Display the message as usual
+			const missingMsg = 'Error\nThe following features required to run Godot projects on the Web are missing:\n';
+			displayFailureNotice(missingMsg + missing.join('\n'));
+		}
+	} else {
+		setStatusMode('progress');
+		engine.startGame({
+			'onProgress': function (current, total) {
+				if (current > 0 && total > 0) {
+					statusProgress.value = current;
+					statusProgress.max = total;
+				} else {
+					statusProgress.removeAttribute('value');
+					statusProgress.removeAttribute('max');
+				}
+			},
+		}).then(() => {
+			setStatusMode('hidden');
+		}, displayFailureNotice);
+	}
+}());
+		</script>
+	</body>
+</html>
+

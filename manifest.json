@@ -1,0 +1,23 @@
+{
+	"name": "猜猜乐",
+	"short_name": "猜猜乐",
+	"description": "两个人互相猜对方秘密角色的猜词游戏",
+	"start_url": "./index.html",
+	"scope": "./",
+	"display": "standalone",
+	"orientation": "portrait",
+	"background_color": "#171a1e",
+	"theme_color": "#171a1e",
+	"icons": [
+		{
+			"src": "index.icon.png",
+			"sizes": "128x128",
+			"type": "image/png"
+		},
+		{
+			"src": "index.apple-touch-icon.png",
+			"sizes": "180x180",
+			"type": "image/png"
+		}
+	]
+}
