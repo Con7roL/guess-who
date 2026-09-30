@@ -1,5 +1,5 @@
 /* owCacheActive —— 由 tools/patch_web_shell.py 自动生成，请勿手改 */
-const OW_CACHE = 'ow-d4e3d99bfc74679e';
+const OW_CACHE = 'ow-99126547fc74679e';
 const OW_PRECACHE = [
 	'./',
 	'./index.html',
